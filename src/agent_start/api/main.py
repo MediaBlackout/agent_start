@@ -10,18 +10,35 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-import uvicorn
-import yaml
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from prometheus_client import generate_latest, Counter
+try:
+    import uvicorn
+except ImportError:  # pragma: no cover - optional dependency
+    uvicorn = None
+try:
+    import yaml
+except ImportError:  # pragma: no cover - optional dependency
+    yaml = None
+try:
+    from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, Depends
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import JSONResponse, HTMLResponse
+    from prometheus_client import generate_latest, Counter
+except ImportError:  # pragma: no cover - optional dependency
+    FastAPI = None
+    WebSocket = WebSocketDisconnect = Request = Depends = None
+    CORSMiddleware = None
+    JSONResponse = HTMLResponse = None
+    generate_latest = lambda: b""
+    class DummyCounter:
+        def __init__(self, *_, **__): pass
+        def inc(self, *_): pass
+    Counter = DummyCounter
 
 # Local modules (interface stubs, actual implementation assumed)
-from agent_core import WeatherAgent
-from data_processor import WeatherProcessor
-from nws_client import NWSClient
-from response_formatter import Formatter
+from ..weather.weather_agent import WeatherAgent
+from ..weather.data_processor import WeatherProcessor
+from ..weather.nws_client import NWSClient
+from ..weather.response_formatter import ResponseFormatter
 
 # === Constants ===
 
@@ -39,6 +56,8 @@ WEBSOCKET_CONNECTIONS = Counter("weather_agent_ws_connections_total", "WebSocket
 
 def load_config(config_path: str = DEFAULT_CONFIG_PATH) -> dict:
     """Load YAML config and overlay environment variables prefixed with WA_."""
+    if yaml is None:
+        return {}
     with open(config_path, "r") as file:
         config = yaml.safe_load(file)
 
@@ -84,7 +103,7 @@ class AppContext:
         self.logger = setup_logger(config)
         self.nws_client = NWSClient(config=config.get("nws_api", {}), logger=self.logger)
         self.processor = WeatherProcessor()
-        self.formatter = Formatter()
+        self.formatter = ResponseFormatter()
         self.agent = WeatherAgent(client=self.nws_client, processor=self.processor, formatter=self.formatter)
         self.plugins = []
 
@@ -114,18 +133,21 @@ def get_app_context() -> AppContext:
 # === FastAPI App Initialization ===
 
 def create_app() -> FastAPI:
+    if FastAPI is None:
+        raise RuntimeError("FastAPI is required to create the web app")
     app = FastAPI(title="Weather Agent", version="1.0.0")
 
     # Dependency container
     context = get_app_context()
 
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    if CORSMiddleware is not None:
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
 
     @app.middleware("http")
     async def add_metrics(request: Request, call_next):
@@ -160,6 +182,26 @@ def create_app() -> FastAPI:
         except Exception as e:
             context.logger.error(f"Error - alerts: {e}")
             return JSONResponse({"error": "Failed to retrieve alerts"}, status_code=500)
+
+    @app.get("/radar/{location}")
+    async def get_radar(location: str):
+        try:
+            data = await context.agent.get_radar_url(location)
+            return data
+        except Exception as e:
+            context.logger.error(f"Error - radar: {e}")
+            return JSONResponse({"error": "Failed to retrieve radar"}, status_code=500)
+
+    @app.get("/")
+    async def ui_index():
+        if HTMLResponse is None:
+            return {"error": "UI requires fastapi[all]"}
+        html_path = Path(__file__).resolve().parent / "templates" / "index.html"
+        if html_path.exists():
+            html = html_path.read_text()
+        else:
+            html = "<html><body><h1>UI missing</h1></body></html>"
+        return HTMLResponse(html)
 
     @app.websocket("/ws/weather")
     async def websocket_weather(ws: WebSocket):
@@ -212,6 +254,8 @@ async def start_server():
     signal.signal(signal.SIGINT, lambda s, f: shutdown_handler())
     signal.signal(signal.SIGTERM, lambda s, f: shutdown_handler())
 
+    if uvicorn is None:
+        raise RuntimeError("uvicorn is required to start the server")
     config = uvicorn.Config(app=app, host=host, port=port, log_level="info", workers=workers)
     server = uvicorn.Server(config=config)
     await server.serve()
@@ -278,5 +322,12 @@ def main():
     else:
         print("Unknown command. Use --help for usage.")
 
-if __name__ == "__main__":
-    main()
+def _test():
+    sys.argv = [sys.argv[0], 'get-weather', 'Test']
+    args = parse_args()
+    assert args.command == 'get-weather'
+    assert args.location == 'Test'
+    print('main test passed')
+
+if __name__ == "__main__":    main()
+
