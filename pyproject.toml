@@ -1,0 +1,37 @@
+[project]
+name = "agent_start"
+version = "0.2.0"
+description = "Refactored weather agent"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx",
+    "pydantic-settings",
+    "structlog",
+    "pgeocode",
+    "fastapi",
+    "uvicorn",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pre-commit",
+]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+line-length = 88
+exclude = ["TEST_1/*"]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+addopts = "--cov=agent_start --cov-report=term"
+
+[tool.coverage.run]
+source = ["agent_start"]
