@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 def send_email():
     ses_client = boto3.client('ses', region_name='us-east-1')  # specify your region
     sender = 'info@mediablackout.ai'
-    recipient = 'matt@mediablackout.ai'
+    recipient = 'info@mediablackout.ai'
     subject = 'Test Email from AWS SES'
     body_text = 'This is a test email sent through AWS SES using boto3.'
     body_html = """<html>
