@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Weather Agent UI</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2em; }
+      #radar { margin-top: 1em; }
+    </style>
+</head>
+<body>
+<h1>Weather Agent</h1>
+<input id="zip" placeholder="Enter ZIP" />
+<button onclick="getWeather()">Fetch Weather</button>
+<pre id="output"></pre>
+<img id="radar" style="display:none;" />
+<script>
+async function getWeather() {
+    const zip = document.getElementById('zip').value;
+    const resp = await fetch('/weather/' + zip);
+    const data = await resp.json();
+    document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    const r = await fetch('/radar/' + zip);
+    const rd = await r.json();
+    if (rd.url) {
+        const img = document.getElementById('radar');
+        img.src = rd.url;
+        img.style.display = 'block';
+    }
+}
+</script>
+</body>
+</html>
