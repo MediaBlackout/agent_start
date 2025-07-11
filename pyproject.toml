@@ -35,7 +35,5 @@ exclude = ["TEST_1/*"]
 profile = "black"
 
 [tool.pytest.ini_options]
-addopts = "--cov=agent_start --cov-report=term"
+addopts = ""
 
-[tool.coverage.run]
-source = ["agent_start"]

@@ -1,4 +1,5 @@
 """Persistent memory backed by SQLite."""
+
 from __future__ import annotations
 
 import sqlite3

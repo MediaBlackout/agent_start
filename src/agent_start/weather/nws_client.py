@@ -1,4 +1,5 @@
 """Async client for the National Weather Service API."""
+
 from __future__ import annotations
 
 import asyncio

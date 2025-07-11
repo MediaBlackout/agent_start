@@ -1,4 +1,5 @@
 """Natural Language Understanding component."""
+
 from __future__ import annotations
 
 import logging

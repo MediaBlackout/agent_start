@@ -1,7 +1,8 @@
 """Rule-based decision engine."""
+
 from __future__ import annotations
 
-from typing import Callable, Any, List
+from typing import Any, Callable, List
 
 
 class Rule:

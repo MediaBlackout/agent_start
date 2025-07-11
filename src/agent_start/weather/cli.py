@@ -1,4 +1,5 @@
 """Command line interface for weather agent."""
+
 from __future__ import annotations
 
 import argparse
