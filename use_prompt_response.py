@@ -1,11 +1,9 @@
-# use_prompt_response.py
-
 """CLI utility to interact with an OpenAI Prompt Response model."""
 
 import argparse
 import os
 from openai import OpenAI
-
+from openai_batch import build_jsonl, write_jsonl, create_batch
 
 DEFAULT_PROMPT_ID = "pmpt_68702538ad2481958a150a6538d02ad90b7c27995ac44c36"
 DEFAULT_PROMPT_VERSION = "1"
@@ -31,6 +29,14 @@ def parse_args() -> argparse.Namespace:
         "--prompt-version",
         default=DEFAULT_PROMPT_VERSION,
         help="Version of the prompt to use",
+    )
+    parser.add_argument(
+        "--batch-jsonl",
+        help="Submit a JSONL file of requests via the Batches API and exit",
+    )
+    parser.add_argument(
+        "--batch-messages",
+        help="Plain text file with one message per line to batch via Batches API",
     )
     return parser.parse_args()
 
@@ -87,7 +93,20 @@ def main() -> None:
         )
 
     client = OpenAI(api_key=args.api_key)
+
+    if args.batch_jsonl or args.batch_messages:
+        jsonl_path = args.batch_jsonl
+        if args.batch_messages:
+            with open(args.batch_messages, "r", encoding="utf-8") as f:
+                messages = [line.strip() for line in f if line.strip()]
+            jsonl_lines = build_jsonl(messages, args.prompt_id, args.prompt_version)
+            jsonl_path = write_jsonl(jsonl_lines, "batch_requests.jsonl")
+        batch = create_batch(client, jsonl_path)
+        print(f"Created batch job: {getattr(batch, 'id', batch)}")
+        return
+
     interactive_loop(client, args.prompt_id, args.prompt_version)
+
 
 if __name__ == "__main__":
     main()
