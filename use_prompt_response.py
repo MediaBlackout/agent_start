@@ -1,13 +1,9 @@
-# use_prompt_response.py
-
 """CLI utility to interact with an OpenAI Prompt Response model."""
 
 import argparse
 import os
 from openai import OpenAI
-
 from openai_batch import build_jsonl, write_jsonl, create_batch
-
 
 DEFAULT_PROMPT_ID = "pmpt_68702538ad2481958a150a6538d02ad90b7c27995ac44c36"
 DEFAULT_PROMPT_VERSION = "1"
@@ -110,6 +106,7 @@ def main() -> None:
         return
 
     interactive_loop(client, args.prompt_id, args.prompt_version)
+
 
 if __name__ == "__main__":
     main()
