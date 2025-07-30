@@ -1,13 +1,19 @@
 # agent_start
 
-This repository contains an example Orchestration Agent service. The orchestrator
-coordinates multiple specialist agents to achieve high level goals. A small
-FastAPI server exposes endpoints to trigger tasks and monitor progress.
+This repository contains a small orchestration service demonstrating how multiple specialized agents can be coordinated to accomplish complex goals. The project uses FastAPI to expose endpoints for starting new tasks and monitoring progress.
 
-Run the server with:
+## Running the Server
 
 ```bash
 python app.py
 ```
 
-Then POST to `/task` with a JSON body `{"goal": "your goal"}` to start.
+Once running, trigger a task with:
+
+```bash
+curl -X POST http://localhost:8000/task -H 'Content-Type: application/json' -d '{"goal": "your goal"}'
+```
+
+Monitor progress via `GET /status`. Tasks that require confirmation can be approved or denied by POSTing to `/approve`.
+
+See `docs/MEDIA_BLACKOUT_AI.md` for guidance on expanding this prototype into a production‑ready orchestration system for MEDIA BLACKOUT LLC.
