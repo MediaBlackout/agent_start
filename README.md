@@ -1,19 +1,28 @@
 # agent_start
 
-This repository contains a small orchestration service demonstrating how multiple specialized agents can be coordinated to accomplish complex goals. The project uses FastAPI to expose endpoints for starting new tasks and monitoring progress.
+This repository contains a ULID-based agent orchestration demo for MEDIA BLACKOUT LLC.
+It simulates a multi-agent workflow demonstrating Neo intake, Morpheus planning,
+Trinity execution with retry/escalation, and Neo closeout. All messages are stored
+with full traceability.
 
-## Running the Server
-
-```bash
-python app.py
-```
-
-Once running, trigger a task with:
+## Installation
 
 ```bash
-curl -X POST http://localhost:8000/task -H 'Content-Type: application/json' -d '{"goal": "your goal"}'
+pip install -r requirements.txt
 ```
 
-Monitor progress via `GET /status`. Tasks that require confirmation can be approved or denied by POSTing to `/approve`.
+## Running the demo
 
-See `docs/MEDIA_BLACKOUT_AI.md` for guidance on expanding this prototype into a production‑ready orchestration system for MEDIA BLACKOUT LLC.
+```bash
+python conversation_manager.py
+```
+
+The script prints the JSON conversation log for auditing.
+
+## Testing
+
+Run unit tests with:
+
+```bash
+pytest
+```
