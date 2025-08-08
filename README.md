@@ -19,6 +19,16 @@ python conversation_manager.py
 
 The script prints the JSON conversation log for auditing.
 
+## OpenAI Responses conversation manager
+
+The `multi_agent_conversation.py` module interfaces with OpenAI's
+Responses API to coordinate multiple agents while preserving
+chain-of-thought continuity.
+
+```bash
+python multi_agent_conversation.py  # requires API key
+```
+
 ## Testing
 
 Run unit tests with:
